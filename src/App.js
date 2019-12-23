@@ -41,28 +41,41 @@ class App extends Component {
       paddle2Y : window.innerHeight/2,
       ballX : window.innerWidth/2,
       ballY : window.innerHeight/2,
-      ballVelocityX : 1,
-      ballVelocityY : 1,    
+      ballVelocityX : 5,
+      ballVelocityY : 5,    
     }
   }
 
   componentDidMount(){
-    // var constraints = {
-    //   audio: false,
-    //   video: {
-    //     width: 480, height: 480,
-    //   }
-    // }
-    // const video = document.getElementById('video');
-    // try{
-    //   const stream = navigator.mediaDevices.getUserMedia(constraints)
-    //   window.stream = stream;
-    //   video.srcObject = stream;
-    // } catch(e){
-    //   console.log('lol gandu initiated')
-    // }
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var image = document.getElementById('image')
+    var constraints = {
+      audio: false,
+      video: {
+        height: 480,
+        width: 480,
+      }
+    }
+    const video = document.getElementById('video');
+    try{
+      var stream = navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+        video.srcObject = stream
+        canvas.setAttribute('width', 480);
+        canvas.setAttribute('height', 480);
+      })
+    }catch(e){
+      console.log('lol gandu initiated' + e)
+    }
 
+    var c = 0
     setInterval(() => {
+      if (c%50 == 0){
+        ctx.drawImage(video, 10, 10)
+        var data = canvas.toDataURL('image/png')
+        image.setAttribute('src', data)  
+      }
+      c++
       this.setState({
         ballX : this.state.ballX + this.state.ballVelocityX,
         ballY : this.state.ballY + this.state.ballVelocityY,
@@ -79,7 +92,7 @@ class App extends Component {
         // this.state.paddle1Y += paddleVelocity
         this.state.paddle1Y = this.state.ballY
       }
-    }, 1)
+    }, 50)
 
     // while(this.state.ballX < window.innerWidth/2){
     //   console.log(1)
