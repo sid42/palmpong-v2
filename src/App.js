@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Konva from 'konva';
 import { render } from 'react-dom';
 import { Stage, Layer, Rect, Text, Circle } from 'react-konva';
-//import * as bodyPix from '@tensorflow-models/body-pix';
+import * as bodyPix from '@tensorflow-models/body-pix';
 
 // import Paddle from './Paddle'
 
@@ -41,12 +41,12 @@ class App extends Component {
       paddle2Y : window.innerHeight/2,
       ballX : window.innerWidth/2,
       ballY : window.innerHeight/2,
-      ballVelocityX : 5,
-      ballVelocityY : 5,    
+      ballVelocityX : 2,
+      ballVelocityY : 2,    
     }
   }
 
-  componentDidMount(){
+  async componentDidMount(){
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
     var image = document.getElementById('image')
@@ -61,43 +61,59 @@ class App extends Component {
     try{
       var stream = navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
         video.srcObject = stream
-        canvas.setAttribute('width', 480);
-        canvas.setAttribute('height', 480);
       })
     }catch(e){
-      console.log('lol gandu initiated' + e)
+      console.log('something went wrong' + e)
+    }
+    
+    var net
+    video.onloadeddata = () => {  
+      video.width = video.videoWidth
+      video.height = video.videoHeight
+      net = bodyPix.load({
+        architecture: 'MobileNetV1',
+        outputStride: 16,
+        multiplier: 0.75,
+        quantBytes: 2
+      })
+      // .then((result) => {
+      //   console.log(result)
+      //   return result.segmentPerson(video)
+      // }).then((result) => {
+      //   console.log(result)
+      // })
     }
 
-    var c = 0
-    setInterval(() => {
-      if (c%50 == 0){
-        ctx.drawImage(video, 10, 10)
-        var data = canvas.toDataURL('image/png')
-        image.setAttribute('src', data)  
+    var elem = this
+    function animationCycle() {
+      if(net != null){
+        elem.setState({
+          ballX : elem.state.ballX + elem.state.ballVelocityX,
+          ballY : elem.state.ballY + elem.state.ballVelocityY,
+        })
+  
+        //handling wall collisions
+        if(elem.state.ballX > window.innerWidth || elem.state.ballX <= 0)
+          elem.state.ballVelocityX = -elem.state.ballVelocityX
+        if(elem.state.ballY > window.innerHeight || elem.state.ballY <= 0)
+          elem.state.ballVelocityY = -elem.state.ballVelocityY
+  
+        //handling paddle AI
+        if(elem.state.ballX < window.innerWidth/2){
+          elem.state.paddle1Y = elem.state.ballY
+        }
+  
+        var segment = net.then((result) => {
+          return result.segmentPerson(video)
+        }).then((result) => {
+          console.log(result)
+        })
+        // console.log(net)
       }
-      c++
-      this.setState({
-        ballX : this.state.ballX + this.state.ballVelocityX,
-        ballY : this.state.ballY + this.state.ballVelocityY,
-      })
+      window.requestAnimationFrame(animationCycle)
+    }
 
-      if(this.state.ballX > window.innerWidth || this.state.ballX <= 0)
-        this.state.ballVelocityX = -this.state.ballVelocityX
-      if(this.state.ballY > window.innerHeight || this.state.ballY <= 0)
-        this.state.ballVelocityY = -this.state.ballVelocityY
-
-      if(this.state.ballX < window.innerWidth/2){
-        // let diff = this.state.ballY - this.state.paddle1Y
-        // let paddleVelocity = diff < 0 ? 0.5 : -0.5
-        // this.state.paddle1Y += paddleVelocity
-        this.state.paddle1Y = this.state.ballY
-      }
-    }, 50)
-
-    // while(this.state.ballX < window.innerWidth/2){
-    //   console.log(1)
-    //   // paddle1Y += paddleVelocity
-    // }
+    animationCycle()
   }
 
   render() {
