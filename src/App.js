@@ -109,15 +109,21 @@ class App extends Component {
             return acc
           }, [])
 
+          var yMin = 45;
+          var yMax = 450
           var yCumulative = pixels.reduce((acc, elem) => {
             var height = elem/480
             acc += height
             return acc
           }, 0)
 
-          var avgY = yCumulative/pixels.length
+          var avgY = 0
+          if(pixels.length !== 0)
+            avgY = (((yCumulative/pixels.length) - yMin)/(yMax - yMin))*750
 
-          console.log(avgY + '' + yCumulative + pixels.length)
+          elem.state.paddle2Y = avgY
+          console.log(avgY)
+          // console.log(elem.state.paddle1Y)
         })
         // console.log(net)
       }
