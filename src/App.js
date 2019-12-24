@@ -41,8 +41,8 @@ class App extends Component {
       paddle2Y : window.innerHeight/2,
       ballX : window.innerWidth/2,
       ballY : window.innerHeight/2,
-      ballVelocityX : 2,
-      ballVelocityY : 2,    
+      ballVelocityX : 5,
+      ballVelocityY : 5,    
     }
   }
 
@@ -76,12 +76,6 @@ class App extends Component {
         multiplier: 0.75,
         quantBytes: 2
       })
-      // .then((result) => {
-      //   console.log(result)
-      //   return result.segmentPerson(video)
-      // }).then((result) => {
-      //   console.log(result)
-      // })
     }
 
     var elem = this
@@ -104,9 +98,26 @@ class App extends Component {
         }
   
         var segment = net.then((result) => {
-          return result.segmentPerson(video)
+          return result.segmentPersonParts(video, {
+            internalResolution: 'medium',
+            segmentationThreshold: 0.75
+          })
         }).then((result) => {
-          console.log(result)
+          var pixels = result.data.reduce((acc, elem, idx) => {
+            if (elem === 11)
+              acc.push(idx)
+            return acc
+          }, [])
+
+          var yCumulative = pixels.reduce((acc, elem) => {
+            var height = elem/480
+            acc += height
+            return acc
+          }, 0)
+
+          var avgY = yCumulative/pixels.length
+
+          console.log(avgY + '' + yCumulative + pixels.length)
         })
         // console.log(net)
       }
