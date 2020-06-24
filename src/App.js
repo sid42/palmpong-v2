@@ -21,7 +21,7 @@ class Paddle extends React.Component {
   }
 }
 
-class Ball extends React.Component {
+class Ball extends React.Component {  
   render() {
     return (
       <Circle
@@ -41,8 +41,8 @@ class App extends Component {
       paddle2Y : window.innerHeight/2,
       ballX : window.innerWidth/2,
       ballY : window.innerHeight/2,
-      ballVelocityX : 5,
-      ballVelocityY : 5,    
+      ballVelocityX : 10,
+      ballVelocityY : 10,    
     }
   }
 
